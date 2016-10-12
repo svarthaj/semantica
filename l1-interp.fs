@@ -48,11 +48,11 @@ let rec step t =
         | If(Bool(false), t2, t3) -> t3
         | If(t1, t2, t3) ->
             let t1' = step t1 in If(t1', t2, t3)
-        | Op(Num(v1), Sum, Num(v2)) when (isint(Num(v1)) && isint(Num(v2))) ->
+        | Op(Num(v1), Sum, Num(v2)) ->
             let res = v1+v2 in Num(res) 
-        | Op(Num(v1), Sub, Num(v2)) when (isint(Num(v1)) && isint(Num(v2))) ->
+        | Op(Num(v1), Sub, Num(v2)) ->
             let res = v1-v2 in Num(res) 
-        | Op(Num(v1), Mul, Num(v2)) when (isint(Num(v1)) && isint(Num(v2))) ->
+        | Op(Num(v1), Mul, Num(v2)) ->
             let res = v1*v2 in Num(res) 
         | Op(Num(v1), Lt, Num(v2)) ->
             let res = (v1 < v2) in
@@ -64,13 +64,13 @@ let rec step t =
                 match res with
                 | true -> Bool(true)
                 | _ -> Bool(false)
-        | Op(Num(v1), Lte, Num(v2)) ->
-            let res = (v1 >= v2) in
+        | Op(Num(v1), Leq, Num(v2)) ->
+            let res = (v1 <= v2) in
                 match res with
                 | true -> Bool(true)
                 | _ -> Bool(false)
-        | Op(Num(v1), Gte, Num(v2)) ->
-            let res = (v1 <= v2) in
+        | Op(Num(v1), Geq, Num(v2)) ->
+            let res = (v1 >= v2) in
                 match res with
                 | true -> Bool(true)
                 | _ -> Bool(false)
@@ -84,10 +84,10 @@ let rec step t =
                 match res with
                 | true -> Bool(true)
                 | _ -> Bool(false)
-        | Op(t1, op, t2) ->
-            let t1' = step t1 in Op(t1', op, t2) 
         | Op(Num(v1), op, t2) -> 
             let t2' = step t2 in Op(Num(v1), op, t2') 
+        | Op(t1, op, t2) ->
+            let t1' = step t1 in Op(t1', op, t2) 
         | _ -> raise NoRuleApplies
 
 (* Implentacao de EVAL *)
@@ -106,6 +106,22 @@ let y = Op(Op(Num(3), Sum, Num(6)), Mul, Num(9)) in
     let x = eval y in
         printfn "%A evaluates to %A" y x 
 
+let y = Op(Op(Num(3), Sum, Num(6)), Mul, Op(Num(9), Sub, Num(4))) in
+    let x = eval y in
+        printfn "%A evaluates to %A" y x 
+
 let y = If(Op(Num(0), Lt, Num(10)), Bool(true), Bool(false)) in
+    let x = eval y in
+        printfn "%A evaluates to %A" y x 
+
+let y = If(Op(Num(10), Leq, Num(4)), Bool(true), Bool(false)) in
+    let x = eval y in
+        printfn "%A evaluates to %A" y x 
+
+let y = If(Op(Num(10), Eq, Num(4)), Bool(true), Bool(false)) in
+    let x = eval y in
+        printfn "%A evaluates to %A" y x 
+
+let y = If(Op(Num(10), Neq, Num(4)), Bool(true), Bool(false)) in
     let x = eval y in
         printfn "%A evaluates to %A" y x 
