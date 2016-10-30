@@ -88,12 +88,16 @@ let rec step t =
         | If(Bool(false), t2, t3) -> t3
         | If(t1, t2, t3) ->
             let t1' = step t1 in If(t1', t2, t3)
+        | If(Raise, t2, t3) -> Raise
         | Op(Num(v1), Sum, Num(v2)) ->
             let res = v1+v2 in Num(res) 
         | Op(Num(v1), Sub, Num(v2)) ->
             let res = v1-v2 in Num(res) 
         | Op(Num(v1), Mul, Num(v2)) ->
             let res = v1*v2 in Num(res) 
+        | Op(Num(v1), Div, Num(v2)) ->  match v2 with
+                                        | 0 -> Raise
+                                        | _ -> let res = v1/v2 in Num(res) 
         | Op(Num(v1), Lt, Num(v2)) ->
             let res = (v1 < v2) in
                 match res with
@@ -129,8 +133,10 @@ let rec step t =
         | Op(t1, op, t2) ->
             let t1' = step t1 in Op(t1', op, t2) 
         | Aplic(Fn(var, t1), t2) when isvalue t2 -> subst (t2, var, t1)  
+        | Aplic(Fn(var, t1), Raise) -> Raise  
         | Aplic(Fn(var, t1), t2) ->
             let t2' = step t2 in Aplic(Fn(var, t1), t2')
+        | Aplic(Raise, t2) -> Raise
         | Aplic(t1, t2) ->
             let t1' = step t1 in Aplic(t1', t2)
         | Let(var, t1, t2) when isvalue t1 -> subst(t1, var, t2)
@@ -139,6 +145,10 @@ let rec step t =
         | LRec(var1, Fn(var2, t1), t2) -> 
             let recur = LRec(var1, Fn(var2, t1), t1) in
                 subst(Fn(var2, recur), var1, t2)  
+        | Try(e1, e2) when isvalue e1 ->    match e1 with
+                                            | Raise -> e2
+                                            | _ -> e1 
+        | Try(e1, e2) -> let e1' = step e1 in Try(e1',e2)
         | _ -> raise NoRuleApplies
 
 (* Implentacao de EVAL *)
@@ -172,5 +182,7 @@ let e12 = LRec(
                     Op( Var "x", Mul, Aplic(Var "fat", Op(Var "x", Sub, Num 1)))                )
             ), 
             Aplic(Var "fat", Num 12))
-(* AVALIAÇÕES *)
-let ev = eval e12 in printfn "%A evaluates to %A" e12 ev
+let e13 = Try(Op(Num 10, Div, Num 0), Var "err: div by zero")
+let e14 = Try(Op(Num 10, Div, Num 5), Var "err: div by zero")
+(* AVALIAÇÕEiS *)
+let ev = eval e14 in printfn "%A evaluates to %A" e14 ev
