@@ -15,7 +15,6 @@ type operator =
 type term = 
     | Num of int
     | Bool of bool
-    | Nil
     | Op of term * operator * term
     | If of term * term * term
     | Var of variable
@@ -23,7 +22,9 @@ type term =
     | Fn of variable * term
     | Let of variable * term * term
     | LRec of variable * term * term 
-    | List of term * term
+    | List of term list
+    | Cons of term * term
+    | Nil
     | Isempty of term
     | Hd of term
     | Tl of term
@@ -35,7 +36,7 @@ type term =
     - ou, um ERRO DE EXECUCAO *)
 exception NoRuleApplies
 
-(* funcao auxiliar : verifica se valor é inteiro *)
+(* funcao auxiliar : verifica se termo é valor inteiro *)
 let isint v = 
     match v with
         | Num(_) -> true
@@ -48,7 +49,6 @@ let isvalue v =
     | Bool(_) -> true
     | Fn(_,_) -> true
     | Nil -> true
-    | Raise -> true
     | _ -> false
 
 (* funcao auxiliar : subsstitui as variaveis livres na expressao *)
@@ -99,35 +99,17 @@ let rec step t =
                                         | 0 -> Raise
                                         | _ -> let res = v1/v2 in Num(res) 
         | Op(Num(v1), Lt, Num(v2)) ->
-            let res = (v1 < v2) in
-                match res with
-                | true -> Bool(true)
-                | _ -> Bool(false)
+            let res = (v1 < v2) in Bool(res)
         | Op(Num(v1), Gt, Num(v2)) ->
-            let res = (v1 > v2) in
-                match res with
-                | true -> Bool(true)
-                | _ -> Bool(false)
+            let res = (v1 > v2) in Bool(res)
         | Op(Num(v1), Leq, Num(v2)) ->
-            let res = (v1 <= v2) in
-                match res with
-                | true -> Bool(true)
-                | _ -> Bool(false)
+            let res = (v1 <= v2) in Bool(res)
         | Op(Num(v1), Geq, Num(v2)) ->
-            let res = (v1 >= v2) in
-                match res with
-                | true -> Bool(true)
-                | _ -> Bool(false)
+            let res = (v1 >= v2) in Bool(res)
         | Op(Num(v1), Eq, Num(v2)) ->
-            let res = (v1 = v2) in
-                match res with
-                | true -> Bool(true)
-                | _ -> Bool(false)
+            let res = (v1 = v2) in Bool(res)
         | Op(Num(v1), Neq, Num(v2)) ->
-            let res = (v1 <> v2) in
-                match res with
-                | true -> Bool(true)
-                | _ -> Bool(false)
+            let res = (v1 <> v2) in Bool(res)
         | Op(Num(v1), op, t2) -> 
             let t2' = step t2 in Op(Num(v1), op, t2') 
         | Op(t1, op, t2) ->
@@ -185,4 +167,4 @@ let e12 = LRec(
 let e13 = Try(Op(Num 10, Div, Num 0), Var "err: div by zero")
 let e14 = Try(Op(Num 10, Div, Num 5), Var "err: div by zero")
 (* AVALIAÇÕEiS *)
-let ev = eval e14 in printfn "%A evaluates to %A" e14 ev
+let ev = eval e12 in printfn "%A evaluates to %A" e12 ev
